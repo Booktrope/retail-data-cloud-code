@@ -9,29 +9,30 @@ Parse.Cloud.define("getCrawlDataForAsin", function(request, response){
 	var query = new Parse.Query("AmazonStats");
 	query.equalTo("asin", request.params.asin);
 	query.include("book");
-	//query.descending("crawl_date,crawl_time");
+	//getting the most recent results
 	query.descending("crawl_date");
 	if(request.params.skip)
 	{
 		query.skip(request.params.skip)
 	}
-	//query.limit(request.params.limit);
 	query.find({
 		success: function(results){
 			
-			var payLoad = {};
-			payLoad.title = "";
-			payLoad.author = "";
+			var payload = {};
+			payload.title = "";
+			payload.author = "";
 			var crawlData = [];
-			payLoad.crawl = crawlData;
+			payload.crawl = crawlData;
 			if(results[0] != null)
 			{
+				//Since all book data is the same, we only want to include it once, 
+				//so we grab the 0th result's book 				
 				var myBook = results[0].get("book");
 			
-				var payLoad = {};
+				var payload = {};
 				var crawlData = [];
-				payLoad.title = myBook.get("title");
-				payLoad.author = myBook.get("author");
+				payload.title = myBook.get("title");   //setting the title
+				payload.author = myBook.get("author"); //setting the author
 				for(var i = 0; i < results.length; i++)
 				{
 					crawlData[i] = {};
@@ -41,11 +42,11 @@ Parse.Cloud.define("getCrawlDataForAsin", function(request, response){
 					crawlData[i].kindle_price   = results[i].get("kindle_price");
 					crawlData[i].num_of_reviews = results[i].get("num_of_reviews");				
 					crawlData[i].crawl_date     = results[i].get("crawl_date");
-					crawlData[i].createdAt      = results[i].get("createdAt");
 				}
-				payLoad.crawl = crawlData.reverse();
+				//reversing the array so it's an ascending list of the most recent crawls
+				payload.crawl = crawlData.reverse();
 			}
-			response.success(payLoad);
+			response.success(payload);
 		},
 		error: function()
 		{
