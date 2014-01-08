@@ -5,6 +5,8 @@ Parse.Cloud.define("hello", function(request, response) {
   response.success("Hello world!");
 });
 
+var sales = require('cloud/sales.js');
+
 Parse.Cloud.define("getCrawlDataForAsin", function(request, response){
 	var query = new Parse.Query("AmazonStats");
 	query.equalTo("asin", request.params.asin);
