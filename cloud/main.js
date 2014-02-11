@@ -44,6 +44,7 @@ Parse.Cloud.define("getCrawlDataForAsin", function(request, response){
 					crawlData[i].kindle_price   = results[i].get("kindle_price");
 					crawlData[i].num_of_reviews = results[i].get("num_of_reviews");				
 					crawlData[i].crawl_date     = results[i].get("crawl_date");
+					crawlData[i].got_price      = results[i].get("got_price");
 				}
 				//reversing the array so it's an ascending list of the most recent crawls
 				payload.crawl = crawlData.reverse();
