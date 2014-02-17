@@ -6,6 +6,7 @@ Parse.Cloud.define("hello", function(request, response) {
 });
 
 var sales = require('cloud/sales.js');
+var promo = require('cloud/promo.js');
 
 Parse.Cloud.define("getCrawlDataForAsin", function(request, response){
 	var query = new Parse.Query("AmazonStats");
