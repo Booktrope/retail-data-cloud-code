@@ -9,7 +9,7 @@ Parse.Cloud.define("getPromoReady", function(request, response){
 	var payload = [];
 	var query = new Parse.Query("Book");
 	query.exists("asin");
-	query.limit(12);
+	query.limit(1000); //todo get books in batches once we publish more than 999
 	
 	query.find().then(function(results)
 	{
@@ -18,6 +18,9 @@ Parse.Cloud.define("getPromoReady", function(request, response){
 		{
 			var crawlQuery = new Parse.Query("AmazonStats");
 			crawlQuery.equalTo("asin", result.get("asin"));
+			crawlQuery.greaterThan("kindle_price", 2.98);
+			crawlQuery.greaterThan("num_of_reviews",9);
+			crawlQuery.greaterThan("average_stars",3.4);
 			crawlQuery.limit(1);
 			crawlQuery.include("book");
 			promises.push(crawlQuery.first().then(function(crawlResult)
