@@ -41,3 +41,39 @@ Parse.Cloud.afterSave("NookStats", function(request)
 	});
 });
 
+
+//TODO:: The scoreboard functions are exactly the same, make a base function to cut down on duplicate code.
+Parse.Cloud.afterSave("AmazonStats", function(request) 
+{
+	query = new Parse.Query("AmazonScoreBoard");
+	var Book = Parse.Object.extend("Book")
+	var book = new Book();
+	
+	book.id = request.object.get("book").id;
+	query.equalTo("book", book);
+	query.first(
+	{
+		success: function(amazonScore) 
+		{
+			// first returns success if there's no error and the object if one exists
+			// otherwise it's null, so we check for not null and update, otherwise we create new.
+			if(amazonScore != null)
+			{	
+				amazonScore.set("stats",request.object);
+				amazonScore.save();
+			}
+			else
+			{
+				var amazonScore = Parse.Object.extend("AmazonScoreBoard");
+				amazonScore = new amazonScore();
+				amazonScore.set("book", book);
+				amazonScore.set("stats", request.object);
+				amazonScore.save();
+			}
+		},
+		error: function(error)
+		{
+			console.error("Got an error " + error.code + " : " + error.message);
+		}
+	});
+});
