@@ -8,16 +8,15 @@
 // for the Boo, but either updating or creating a new record if one doesn't exist.
 Parse.Cloud.afterSave("NookStats", function(request) 
 {
-	saveIntoScoreBoard("NookScoreBoard", request);
+	saveIntoScoreBoard("NookScoreBoard", ["salesRank","price","reviewCount", "averageCount", "crawlDate"], request);
 });
 
-//TODO:: The scoreboard functions are exactly the same, make a base function to cut down on duplicate code.
 Parse.Cloud.afterSave("AmazonStats", function(request) 
 {
-	saveIntoScoreBoard("AmazonScoreBoard", request);
+	saveIntoScoreBoard("AmazonScoreBoard", ["got_price", "kindle_price", "sales_rank", "crawl_date", "num_of_reviews", "average_stars"], request);
 });
 
-function saveIntoScoreBoard(scoreBoard, request)
+function saveIntoScoreBoard(scoreBoard, fields, request)
 {
 	query = new Parse.Query(scoreBoard);
 	var Book = Parse.Object.extend("Book")
@@ -25,25 +24,25 @@ function saveIntoScoreBoard(scoreBoard, request)
 	
 	book.id = request.object.get("book").id;
 	query.equalTo("book", book);
+	query.include("stats");
 	query.first(
 	{
 		success: function(score) 
 		{
 			// first returns success if there's no error and the object if one exists
 			// otherwise it's null, so we check for not null and update, otherwise we create new.
-			if(score != null)
-			{	
-				score.set("stats",request.object);
-				score.save();
-			}
-			else
+			if(score == null)
 			{
 				var score = Parse.Object.extend(scoreBoard);
 				score = new NookScore();
-				score.set("book", book);
-				score.set("stats", request.object);
-				score.save();
 			}
+			score.set("book", book);			
+			score.set("stats",request.object);
+			for(var i = 0; i < fields.length; i++)
+			{
+				score.set(fields[i], score.get("stats").get(fields[i]));
+			}	
+			score.save();
 		},
 		error: function(error)
 		{
