@@ -8,44 +8,18 @@
 // for the Boo, but either updating or creating a new record if one doesn't exist.
 Parse.Cloud.afterSave("NookStats", function(request) 
 {
-	query = new Parse.Query("NookScoreBoard");
-	var Book = Parse.Object.extend("Book")
-	var book = new Book();
-	
-	book.id = request.object.get("book").id;
-	query.equalTo("book", book);
-	query.first(
-	{
-		success: function(nookScore) 
-		{
-			// first returns success if there's no error and the object if one exists
-			// otherwise it's null, so we check for not null and update, otherwise we create new.
-			if(nookScore != null)
-			{	
-				nookScore.set("stats",request.object);
-				nookScore.save();
-			}
-			else
-			{
-				var NookScore = Parse.Object.extend("NookScoreBoard");
-				nookScore = new NookScore();
-				nookScore.set("book", book);
-				nookScore.set("stats", request.object);
-				nookScore.save();
-			}
-		},
-		error: function(error)
-		{
-			console.error("Got an error " + error.code + " : " + error.message);
-		}
-	});
+	saveIntoScoreBoard("NookScoreBoard", request);
 });
-
 
 //TODO:: The scoreboard functions are exactly the same, make a base function to cut down on duplicate code.
 Parse.Cloud.afterSave("AmazonStats", function(request) 
 {
-	query = new Parse.Query("AmazonScoreBoard");
+	saveIntoScoreBoard("AmazonScoreBoard", request);
+});
+
+function saveIntoScoreBoard(scoreBoard, request)
+{
+	query = new Parse.Query(scoreBoard);
 	var Book = Parse.Object.extend("Book")
 	var book = new Book();
 	
@@ -53,22 +27,22 @@ Parse.Cloud.afterSave("AmazonStats", function(request)
 	query.equalTo("book", book);
 	query.first(
 	{
-		success: function(amazonScore) 
+		success: function(score) 
 		{
 			// first returns success if there's no error and the object if one exists
 			// otherwise it's null, so we check for not null and update, otherwise we create new.
-			if(amazonScore != null)
+			if(score != null)
 			{	
-				amazonScore.set("stats",request.object);
-				amazonScore.save();
+				score.set("stats",request.object);
+				score.save();
 			}
 			else
 			{
-				var amazonScore = Parse.Object.extend("AmazonScoreBoard");
-				amazonScore = new amazonScore();
-				amazonScore.set("book", book);
-				amazonScore.set("stats", request.object);
-				amazonScore.save();
+				var score = Parse.Object.extend(scoreBoard);
+				score = new NookScore();
+				score.set("book", book);
+				score.set("stats", request.object);
+				score.save();
 			}
 		},
 		error: function(error)
@@ -76,4 +50,4 @@ Parse.Cloud.afterSave("AmazonStats", function(request)
 			console.error("Got an error " + error.code + " : " + error.message);
 		}
 	});
-});
+}
