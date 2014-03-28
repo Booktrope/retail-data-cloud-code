@@ -1,5 +1,62 @@
 // Cloud code for parse save triggers
 
+// the afterSave hook for AmazonSalesData
+Parse.Cloud.afterSave("AmazonSalesData", function(request)
+{
+	aggregateSales("amazonSales", request);
+});
+
+// the afterSave hook for AppleSalesData
+Parse.Cloud.afterSave("AppleSalesData", function(request)
+{
+	aggregateSales("appleSales", request);
+});
+
+// the afterSave hook for NookSalesData
+Parse.Cloud.afterSave("NookSalesData", function(request)
+{
+	aggregateSales("nookSales", request);
+});
+
+//Base function for aggregating daily sales data into the AggregateSales class.
+function aggregateSales(salesFieldName, request)
+{
+	query = new Parse.Query("AggregateSales");
+	var Book = Parse.Object.extend("Book")
+	var book = new Book();
+	
+	date = request.object.get("crawlDate");
+	searchDate = new Date(date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + "Z00:00:00.000");
+	
+	book.id = request.object.get("book").id;
+	query.equalTo("book", book);
+	query.equalTo("crawlDate", searchDate);
+	query.first(
+	{
+		success: function(aggregate) 
+		{
+			// first returns success if there's no error and the object if one exists
+			// otherwise it's null, so we check for not null and update, otherwise we create new.
+			if(aggregate == null)
+			{
+				var Aggregate = Parse.Object.extend("AggregateSales");
+				aggregate = new Aggregate();
+				aggregate.set("crawlDate", searchDate);
+			}
+			prevTotal = aggregate.get(salesFieldName) != null ? aggregate.get(salesFieldName) : 0;
+			
+			aggregate.set("book", book);			
+			aggregate.set(salesFieldName, prevTotal + request.object.get("dailySales"));
+			
+			aggregate.save();
+		},
+		error: function(error)
+		{
+			console.error("Got an error " + error.code + " : " + error.message);
+		}
+	});
+}
+
 
 // the afterSave hook for NookStats
 Parse.Cloud.afterSave("NookStats", function(request) 
