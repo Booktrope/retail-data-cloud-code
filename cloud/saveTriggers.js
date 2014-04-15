@@ -1,5 +1,48 @@
 // Cloud code for parse save triggers
 
+Parse.Cloud.afterSave("PriceChangeQueue", function(request)
+{
+	var statusCode = request.object.get("status");
+	var channelName = request.object.get("channelName");
+	var title = request.object.get("title");
+	var price = request.object.get("price");
+	var alertMessage = "";
+	switch(statusCode)
+	{
+		case 0:
+			alertMessage = title + " was added to the queue for " + channelName + " and the price will be changed to $" +  price +".";
+			break;
+		case 25:
+			alertMessage = "Attempted to set the price of " + title + " to $" + price + " on " + channelName + ".";
+			break;
+		case 50:
+			alertMessage = "Price for " + title + " was set to $" + price + " on " + channelName + " waiting for confirmation.";
+			break;
+		case 99:
+			alertMessage = "Price change confirmed: " + title + " was set to $" + price + " on " + channelName + ".";
+			break;
+	}
+	
+	Parse.Push.send(
+	{
+		channels: [ "PriceChanges" ],
+		data: 
+		{
+			alert: alertMessage
+		}
+	}, 
+	{
+		success: function() 
+		{
+    	// Push was successful
+  		},
+		error: function(error) 
+		{
+		// Handle error
+		}
+	});
+});
+
 // the afterSave hook for AmazonSalesData
 Parse.Cloud.afterSave("AmazonSalesData", function(request)
 {
