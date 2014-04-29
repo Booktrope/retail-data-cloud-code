@@ -26,8 +26,8 @@ Parse.Cloud.define("getSalesDataForAsin", function(request, response){
              
                 var payLoad = {};
                 var crawlData = [];
-                payLoad.title = myBook.get("title");
-                payLoad.author = myBook.get("author");
+                payLoad.title = (myBook != null) ? myBook.get("title") : "";
+                payLoad.author = (myBook != null) ? myBook.get("author") : "";
                 for(var i = 0; i < results.length; i++)
                 {
                     crawlData[i] = {};
