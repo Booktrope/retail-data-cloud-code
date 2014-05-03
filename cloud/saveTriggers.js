@@ -64,6 +64,8 @@ Parse.Cloud.afterSave("NookSalesData", function(request)
 //Base function for aggregating daily sales data into the AggregateSales class.
 function aggregateSales(salesFieldName, request)
 {
+	if(request.object.get("book") == null) { return; }
+
 	query = new Parse.Query("AggregateSales");
 	var Book = Parse.Object.extend("Book")
 	var book = new Book();
