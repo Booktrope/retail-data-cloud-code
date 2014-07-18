@@ -43,6 +43,7 @@ Parse.Cloud.afterSave("PriceChangeQueue", function(request)
 	});
 });
 
+
 // the afterSave hook for AmazonSalesData
 Parse.Cloud.afterSave("AmazonSalesData", function(request)
 {
@@ -59,6 +60,11 @@ Parse.Cloud.afterSave("AppleSalesData", function(request)
 Parse.Cloud.afterSave("NookSalesData", function(request)
 {
 	aggregateSales("nookSales", request);
+});
+
+Parse.Cloud.afterSave("GooglePlaySalesData", function(request)
+{
+	aggregateSales("googleplaySales", request);
 });
 
 //Base function for aggregating daily sales data into the AggregateSales class.
@@ -135,6 +141,17 @@ Parse.Cloud.afterSave("AppleStats", function(request)
 Parse.Cloud.afterDelete("AppleStats", function(request)
 {
 	deleteFromScoreBoard("AppleScoreBoard", "AppleStats", request);
+});
+
+//afterSave hook for GooglePlayStats
+Parse.Cloud.afterSave("GooglePlayStats", function(request) 
+{
+	saveIntoScoreBoard("GooglePlayScoreBoard", ["price", "numOfReviews", "averageReviews", "crawlDate"], request);
+});
+
+Parse.Cloud.afterDelete("GooglePlayStats", function(request)
+{
+	deleteFromScoreBoard("GooglePlayScoreBoard", "GooglePlayStats", request);
 });
 
 // base function for saving stats into a scoreboard.
