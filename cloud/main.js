@@ -8,6 +8,7 @@ Parse.Cloud.define("hello", function(request, response) {
 var sales = require('cloud/sales.js');
 var promo = require('cloud/promo.js');
 var saveTriggers = require('cloud/saveTriggers.js');
+var priceChangerBackgroundJobs = require('cloud/priceChangerBackgroundJob');
 
 Parse.Cloud.define("getCrawlDataForAsin", function(request, response){
 	var query = new Parse.Query("AmazonStats");
