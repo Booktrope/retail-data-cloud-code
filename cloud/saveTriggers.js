@@ -21,6 +21,9 @@ Parse.Cloud.afterSave("PriceChangeQueue", function(request)
 		case 99:
 			alertMessage = "Price change confirmed: " + title + " was set to $" + price + " on " + channelName + ".";
 			break;
+		case 404:
+			alertMessage = "Not Found: " + title + " was not found on " + channelName;
+			break;
 	}
 	
 	Parse.Push.send(
