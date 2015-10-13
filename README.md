@@ -12,21 +12,23 @@ You can retreive the keys from parse or from your teamtrope-rails config/applica
 
 Below is a template of the file.
 
+./config/global.json
+
 ```
 {
    "applications": {
         "_default": {
             "link": "devRetailData"
-        }, 
+        },
         "devRetailData": {
-            "applicationId": "", 
+            "applicationId": "",
             "masterKey": ""
-        }, 
+        },
         "retailData": {
-            "applicationId": "", 
+            "applicationId": "",
             "masterKey": ""
         }
-    }, 
+    },
     "global": {
         "parseVersion": "1.2.12"
     }
