@@ -1,6 +1,6 @@
 // Use Parse.Cloud.define to define as many cloud functions as you want.
 // For example:
- 
+
 Parse.Cloud.define("getSalesDataForAsin", function(request, response){
     var query = new Parse.Query("AmazonSalesData");
     query.equalTo("asin", request.params.asin);
@@ -15,7 +15,7 @@ Parse.Cloud.define("getSalesDataForAsin", function(request, response){
     //query.limit(request.params.limit);
     query.find({
         success: function(results){
-             
+
             var payLoad = {};
             payLoad.title = "";
             payLoad.author = "";
@@ -24,7 +24,7 @@ Parse.Cloud.define("getSalesDataForAsin", function(request, response){
             if(results[0] != null)
             {
                 var myBook = results[0].get("book");
-             
+
                 var payLoad = {};
                 var crawlData = [];
                 payLoad.title = (myBook != null) ? myBook.get("title") : "";
@@ -33,8 +33,9 @@ Parse.Cloud.define("getSalesDataForAsin", function(request, response){
                 {
                     crawlData[i] = {};
                     crawlData[i].asin        = results[i].get("asin");
-				    crawlData[i].dailySales  = results[i].get("dailySales");
-				    crawlData[i].crawlDate   = results[i].get("crawlDate"); 
+                    crawlData[i].dailySales  = results[i].get("dailySales");
+                    crawlData[i].crawlDate   = results[i].get("crawlDate");
+                    crawlData[i].dailyKdpUnlimited = results[i].get("dailyKdpUnlimited");
                }
                 payLoad.crawl = crawlData.reverse();
             }
@@ -45,7 +46,7 @@ Parse.Cloud.define("getSalesDataForAsin", function(request, response){
             response.error("lookup failed");
         }
     });
- 
+
 });
 
 Parse.Cloud.define("getSalesDataForApple", function(request, response){
@@ -71,7 +72,7 @@ Parse.Cloud.define("getSalesDataForApple", function(request, response){
 		if(results[0] != null)
 		{
 			var myBook = results[0].get("book");
-		  
+
 			var payLoad = {};
 			var crawlData = [];
 			payLoad.title = (myBook.id != null) ? myBook.get("title") : "";
@@ -84,12 +85,12 @@ Parse.Cloud.define("getSalesDataForApple", function(request, response){
 					crawlData[j] = {};
 					crawlData[j].objectId   = results[i].get("objectId");
 					crawlData[j].appleSales = results[i].get("appleSales");
-					crawlData[j].crawlDate  = results[i].get("crawlDate"); 
+					crawlData[j].crawlDate  = results[i].get("crawlDate");
 					j++;
 				}
-			}	
+			}
                 	payLoad.crawl = crawlData.reverse();
-           	}	
+           	}
             	response.success(payLoad);
         },
         error: function()
@@ -122,7 +123,7 @@ Parse.Cloud.define("getSalesDataForNook", function(request, response){
 		if(results[0] != null)
 		{
 			var myBook = results[0].get("book");
-		  
+
 			var payLoad = {};
 			var crawlData = [];
 			payLoad.title = (myBook.id != null) ? myBook.get("title") : "";
@@ -135,12 +136,12 @@ Parse.Cloud.define("getSalesDataForNook", function(request, response){
 					crawlData[j] = {};
 					crawlData[j].objectId   = results[i].get("objectId");
 					crawlData[j].nookSales = results[i].get("nookSales");
-					crawlData[j].crawlDate  = results[i].get("crawlDate"); 
+					crawlData[j].crawlDate  = results[i].get("crawlDate");
 					j++;
 				}
-			}	
+			}
                 	payLoad.crawl = crawlData.reverse();
-           	}	
+           	}
             	response.success(payLoad);
         },
         error: function()
