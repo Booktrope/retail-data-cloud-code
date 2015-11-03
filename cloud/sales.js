@@ -36,6 +36,7 @@ Parse.Cloud.define("getSalesDataForAsin", function(request, response){
                     crawlData[i].dailySales  = results[i].get("dailySales");
                     crawlData[i].crawlDate   = results[i].get("crawlDate");
                     crawlData[i].dailyKdpUnlimited = results[i].get("dailyKdpUnlimited");
+                    crawlData[i].dailyFreeUnitsPromo = results[i].get("dailyFreeUnitsPromo")
                }
                 payLoad.crawl = crawlData.reverse();
             }
