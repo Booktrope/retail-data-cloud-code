@@ -1,6 +1,7 @@
 // Cloud code for parse save triggers
 
-Parse.Cloud.afterSave("PriceChangeQueue", function(request)
+
+function sendPriceChangePush(request)
 {
 	var statusCode = request.object.get("status");
 	var channelName = request.object.get("channelName");
@@ -25,27 +26,36 @@ Parse.Cloud.afterSave("PriceChangeQueue", function(request)
 			alertMessage = "Not Found: " + title + " was not found on " + channelName;
 			break;
 	}
-	
+
 	Parse.Push.send(
 	{
 		channels: [ "PriceChanges" ],
-		data: 
+		data:
 		{
 			alert: alertMessage
 		}
-	}, 
+	},
 	{
-		success: function() 
+		success: function()
 		{
     	// Push was successful
   		},
-		error: function(error) 
+		error: function(error)
 		{
 		// Handle error
 		}
 	});
+}
+
+Parse.Cloud.afterSave("PriceChangeQueue", function(request)
+{
+	sendPriceChangePush(request);
 });
 
+Parse.Cloud.afterSave("PrefunkQueue", function(request)
+{
+	sendPriceChangePush(request);
+});
 
 // the afterSave hook for AmazonSalesData
 Parse.Cloud.afterSave("AmazonSalesData", function(request)
@@ -78,16 +88,16 @@ function aggregateSales(salesFieldName, request)
 	query = new Parse.Query("AggregateSales");
 	var Book = Parse.Object.extend("Book")
 	var book = new Book();
-	
+
 	date = request.object.get("crawlDate");
 	searchDate = new Date(date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + "Z00:00:00.000");
-	
+
 	book.id = request.object.get("book").id;
 	query.equalTo("book", book);
 	query.equalTo("crawlDate", searchDate);
 	query.first(
 	{
-		success: function(aggregate) 
+		success: function(aggregate)
 		{
 			// first returns success if there's no error and the object if one exists
 			// otherwise it's null, so we check for not null and update, otherwise we create new.
@@ -98,10 +108,10 @@ function aggregateSales(salesFieldName, request)
 				aggregate.set("crawlDate", searchDate);
 			}
 			prevTotal = aggregate.get(salesFieldName) != null ? aggregate.get(salesFieldName) : 0;
-			
-			aggregate.set("book", book);			
+
+			aggregate.set("book", book);
 			aggregate.set(salesFieldName, prevTotal + request.object.get("dailySales"));
-			
+
 			aggregate.save();
 		},
 		error: function(error)
@@ -113,7 +123,7 @@ function aggregateSales(salesFieldName, request)
 
 
 // the afterSave hook for NookStats
-Parse.Cloud.afterSave("NookStats", function(request) 
+Parse.Cloud.afterSave("NookStats", function(request)
 {
 	saveIntoScoreBoard("NookScoreBoard", ["salesRank","price","reviewCount", "averageCount", "crawlDate"], request);
 });
@@ -125,7 +135,7 @@ Parse.Cloud.afterDelete("NookStats", function(request)
 
 
 //afterSave hook for AmazonStats
-Parse.Cloud.afterSave("AmazonStats", function(request) 
+Parse.Cloud.afterSave("AmazonStats", function(request)
 {
 	saveIntoScoreBoard("AmazonScoreBoard", ["got_price", "kindle_price", "sales_rank", "crawl_date", "num_of_reviews", "average_stars"], request);
 });
@@ -136,7 +146,7 @@ Parse.Cloud.afterDelete("AmazonStats", function(request)
 });
 
 //afterSave hook for AppleStats
-Parse.Cloud.afterSave("AppleStats", function(request) 
+Parse.Cloud.afterSave("AppleStats", function(request)
 {
 	saveIntoScoreBoard("AppleScoreBoard", ["price", "numOfReviews", "averageStars", "crawlDate"], request);
 });
@@ -147,7 +157,7 @@ Parse.Cloud.afterDelete("AppleStats", function(request)
 });
 
 //afterSave hook for GooglePlayStats
-Parse.Cloud.afterSave("GooglePlayStats", function(request) 
+Parse.Cloud.afterSave("GooglePlayStats", function(request)
 {
 	saveIntoScoreBoard("GooglePlayScoreBoard", ["price", "numOfReviews", "averageReviews", "crawlDate"], request);
 });
@@ -167,13 +177,13 @@ function saveIntoScoreBoard(scoreBoard, fields, request)
 	query = new Parse.Query(scoreBoard);
 	var Book = Parse.Object.extend("Book")
 	var book = new Book();
-	
+
 	book.id = request.object.get("book").id;
 	query.equalTo("book", book);
 	query.include("stats");
 	query.first(
 	{
-		success: function(score) 
+		success: function(score)
 		{
 			// first returns success if there's no error and the object if one exists
 			// otherwise it's null, so we check for not null and update, otherwise we create new.
@@ -182,12 +192,12 @@ function saveIntoScoreBoard(scoreBoard, fields, request)
 				var Score = Parse.Object.extend(scoreBoard);
 				score = new Score();
 			}
-			score.set("book", book);			
+			score.set("book", book);
 			score.set("stats",request.object);
 			for(var i = 0; i < fields.length; i++)
 			{
 				score.set(fields[i], score.get("stats").get(fields[i]));
-			}	
+			}
 			score.save();
 		},
 		error: function(error)
@@ -202,9 +212,9 @@ function saveIntoScoreBoard(scoreBoard, fields, request)
 function deleteFromScoreBoard(scoreBoard, stats, request)
 {
 	query = new Parse.Query(scoreBoard);
-	
+
 	var Stats = Parse.Object.extend(stats)
-	var stats = new Stats();	
+	var stats = new Stats();
 	stats.id = request.object.id;
 
 	query.equalTo("stats", stats);
