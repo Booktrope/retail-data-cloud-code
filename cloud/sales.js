@@ -19,6 +19,52 @@ Parse.Cloud.define('amazonTopList', function(request, response) {
 
 });
 
+Parse.Cloud.define('amazonSalesByGenre', function(request, response) {
+  var query = new Parse.Query("AmazonSalesData");
+
+  query.descending("crawlDate");
+  query.limit(1);
+
+  return query.find().then(
+    function(results) {
+
+      var latestQueryDate = results[0].get("crawlDate");
+      var latestQuery = new Parse.Query("AmazonSalesData");
+
+      latestQuery.equalTo("crawlDate", latestQueryDate);
+      latestQuery.limit(1000);
+      latestQuery.include("book");
+      var genreHash = {};
+      latestQuery.find().then(
+        function(results) {
+          // our results payLoad we will sort this by count at the end
+          var payLoad = Array();
+          var genreCount = {}; // associative array which contains a genre and a count
+          // looping through the results and grouping by genre
+          results.forEach(function(salesRecord) {
+            var book = salesRecord.get("book");
+            // ignore books that haven't had their control numbers or genre set
+            if(book !== undefined && book.get("genre") !== undefined && salesRecord.get('dailySales') !== undefined) {
+              genre = salesRecord.get("book").get("genre");
+              // sum the genre count if exists otherwise initialize it to one.
+              if (genreCount[genre] !== undefined) { genreCount[genre]+= salesRecord.get("dailySales"); }
+              else { genreCount[genre] = salesRecord.get("dailySales"); }
+            }
+          });
+          // insert the genre/count into the payLoad array
+          for( var genre in genreCount) {
+            payLoad.push({ genre: genre, count: genreCount[genre] });
+          }
+          // sort by count descending and set success.
+          response.success(payLoad.sort(function(a,b) { return (a.count < b.count) ? 1 : ((b.count < a.count) ? -1 : 0); }));
+        }
+      );
+
+    },function(error) {
+      response.error(error);
+  });
+});
+
 Parse.Cloud.define('amazonTopSales', function(request, response) {
   var query = new Parse.Query("AmazonSalesData");
   query.equalTo("country", "US");
