@@ -1,6 +1,53 @@
 // Use Parse.Cloud.define to define as many cloud functions as you want.
 // For example:
 
+Parse.Cloud.define('amazonTopList', function(request, response) {
+
+  var query = new Parse.Query("AmazonScoreBoard");
+  query.include("book");
+  query.descending(request.params.descending || "num_of_reviews" );
+  query.limit(request.params.limit || 40);
+
+  query.find({
+    success: function(results) {
+      response.success(results);
+    },
+    error: function(error){
+      response.error = error;
+    }
+  });
+
+});
+
+Parse.Cloud.define('amazonTopSales', function(request, response) {
+  var query = new Parse.Query("AmazonSalesData");
+  query.equalTo("country", "US");
+  query.include("book");
+  query.descending("crawlDate");
+  query.limit(request.params.limit || 20);
+
+  query.find({
+    success: function(results) {
+
+      var previousDate = results[0].get("crawlDate").toUTCString();
+
+      var recentResults = [];
+      for(var i = 0; i < results.length; i++)
+      {
+        if(previousDate !== results[i].get("crawlDate").toUTCString())
+           break;
+        recentResults[i] = results[i];
+      }
+
+      response.success(recentResults);
+    },
+    error: function(error) {
+      response.error("lookup failed");
+    }
+  });
+
+});
+
 Parse.Cloud.define("getSalesDataForAsin", function(request, response){
     var query = new Parse.Query("AmazonSalesData");
     query.equalTo("asin", request.params.asin);
