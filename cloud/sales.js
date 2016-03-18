@@ -10,7 +10,34 @@ Parse.Cloud.define('amazonTopList', function(request, response) {
 
   query.find({
     success: function(results) {
-      response.success(results);
+      if(request.params.c1 && request.params.c2) {
+        var payload = {};
+        payload.results = [];
+
+        for(var i = 0; i < results.length; i++) {
+          var salesRecord = {};
+
+          salesRecord.average_stars  = results[i].get("average_stars");
+          salesRecord.book           = results[i].get("book");
+          salesRecord.num_of_reviews = results[i].get("num_of_reviews");
+
+          salesRecord.crawl_date   = results[i].get("crawl_date");
+          salesRecord.got_price    = results[i].get("got_price");
+          salesRecord.kindle_price = results[i].get("kindle_price");
+          salesRecord.sales_rank   = results[i].get("sales_rank");
+
+          salesRecord.weight = ((results[i].get("num_of_reviews")/request.params.c1) *
+                (results[i].get("average_stars")/request.params.c2));
+
+          payload.results.push(salesRecord);
+
+        }
+        payload.results.sort(function(a,b) { return (a.weight < b.weight) ? 1 : ((b.weight < a.weight) ? -1 : 0); });
+        response.success(payload);
+      }
+      else {
+        response.success(results);
+      }
     },
     error: function(error){
       response.error = error;
@@ -18,6 +45,8 @@ Parse.Cloud.define('amazonTopList', function(request, response) {
   });
 
 });
+
+
 
 Parse.Cloud.define('amazonSalesByGenre', function(request, response) {
   var query = new Parse.Query("AmazonSalesData");
